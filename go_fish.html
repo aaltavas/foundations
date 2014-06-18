@@ -1,0 +1,224 @@
+<script>
+
+  function Deck() { //creates a deck of cards
+    this.cards = [];
+    this.suit = ["Spades", "Clubs", "Hearts", "Diamonds"];
+    this.rank = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
+    this.count = function() {
+      return this.cards.length;
+    }
+    this.init = function() {
+      for (s = 0; s <= 3; s++) {
+        for (r = 0; r <= 12; r++) {
+          this.cards.push(new Card(this.rank[r], this.suit[s]));
+        }
+      }
+    }
+  }
+
+  function Card(rank, suit) { //creates cards with rank and suit properties
+    this.rank = rank;         
+    this.suit = suit;
+    this.show = function() { //prints the card on the console
+      console.log(this.rank + " of " + this.suit);
+    }
+    this.showRank = function() { //showRank simply returns the rank
+      return this.rank;
+    }
+  }
+
+  d = new Deck();
+  d.init();
+
+  function Deal() {
+    this.hand = [];
+    this.handRank = [];
+    this.draw = function () {  //the player and cpu are each dealt 7 random cards
+      for (i = 0; i <= 6; i++) {
+        var random = Math.floor(Math.random() * d.count());
+        this.hand.push(d.cards[random]);
+        d.cards.splice(random, 1);
+      }
+    }
+    this.showHand = function() {  //prints the current hand on the console
+       this.hand.sort(compare);
+       i = 0;
+      while (i < this.hand.length) {
+        var card = this.hand[i];
+        card.show();
+        i++;
+      }
+    }
+    this.initialRanks = function () {  //keeps track of the ranks from the first hand
+     for (l = 0; l <= 6; l++) {
+      var card = this.hand[l];
+      this.handRank[l] = card.showRank();
+      } 
+    }
+  } 
+
+  player1 = new Deal();
+  player1.draw();
+  player1.initialRanks();
+  player2 = new Deal();
+  player2.draw();
+
+  function HumanTurn(rank) {
+    this.rank = rank;
+    this.choose = function() {
+      var playerLength = player1.hand.length;
+      var oppLength = player2.hand.length - 1;
+      while (oppLength >= 0) {                    //Goes through the CPU's hand and takes out cards with the
+        var check = player2.hand[oppLength].rank; //rank that's asked for. The cards are then placed in the player's
+        if (this.rank == check) {                 //hand.
+          player1.hand.push(player2.hand[oppLength]);
+          player2.hand.splice(oppLength, 1);
+        }
+        oppLength--;
+      }
+      if (player1.hand.length == playerLength) {            //If the rank that's asked for is not in the CPU's hand,
+        alert("Go fish!");                                  //go fish is initiated. A card is drawn from the deck.
+        var random = Math.floor(Math.random() * d.count()); //If drawn card is ranked asked for, the player goes again.
+        if (this.rank == d.cards[random].rank) {
+          alert ("Drawn card is the rank asked for! Go again");
+          player1.hand.push(d.cards[random]);
+          d.cards.splice(random, 1);
+          return true;
+        }
+        else {
+          alert ("Drawn card is NOT the rank asked for! Player 2 turn");  //If card is not the rank asked for,
+          player1.hand.push(d.cards[random]);                             //player is notified that the opponent goes
+          d.cards.splice(random, 1);                                      //next.
+           console.log("");
+          console.log("card count: " + d.count() + ", player one count: " + player1.hand.length + ", player two count: " + player2.hand.length);
+          console.log("");
+          player1.showHand();                                    
+          return false;
+        }
+      }
+      else {
+        alert("You have " + (player1.hand.length - playerLength) + " new cards! Go again"); //Player is notified
+        return true;                                                                        //about how many cards
+      }                                                                                     //he has taken from the  
+    }                                                                                       //CPU's hand.  
+  }
+
+  function CpuTurn () {                                       //Works the same as HumanTurn. Variables are switched
+    random = Math.floor(Math.random() * player2.hand.length); //around.
+    answer = player2.hand[random].rank;
+    this.choose = function() {
+      alert("Do you have any " + answer + "s ?");
+      var playerLength = player2.hand.length;
+      var oppLength = player1.hand.length - 1;
+      while (oppLength >= 0) {
+        var check = player1.hand[oppLength].rank;
+        if (answer == check) {
+         player2.hand.push(player1.hand[oppLength]);
+         player1.hand.splice(oppLength, 1);
+        }
+       oppLength--;
+      }
+      if (player2.hand.length == playerLength && d.count() > 0) {
+       alert("Go fish!");
+       var random = Math.floor(Math.random() * d.count());
+       if (answer == d.cards[random].rank) {
+        alert ("Drawn card is the rank asked for! Player 2 goes again");
+        player2.hand.push(d.cards[random]);
+        d.cards.splice(random, 1);
+        return true;
+       } 
+       else {
+        alert ("Drawn card is NOT the rank asked for! Player 1 turn");
+        player2.hand.push(d.cards[random]);
+        d.cards.splice(random, 1);
+        return false;
+        }
+      } 
+      else {
+       alert("Player 2 has " + (player2.hand.length - playerLength) + " new cards! Go again");
+       return true;
+      }
+    }
+  }
+
+  function hasBook (deal, name) {            //Checks to see if the player or CPU has a book (4 cards of the same    
+    this.name = name;                        //rank). Next, it removes the book from the hand.
+    this.score = 0;
+    this.check = function() {
+      for (i = 0; i <= d.rank.length - 1; i++) {
+        var count = 0;
+        for(j = 0; j <= deal.hand.length - 1; j++) {
+          if (d.rank[i] == deal.hand[j].rank){
+            count++;
+            if (count == 4) {
+              var x = [deal.hand[j].rank];
+              this.score++;
+              alert(name + " has four " + deal.hand[j].rank + "s!");
+              alert(name + " has " + this.score + " books.");
+              for (var k = deal.hand.length - 1; k >= 0; k--) {
+                var obj = deal.hand[k];
+                if (x.indexOf(obj.rank) !== -1) {
+                  deal.hand.splice(k, 1);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function compare(a,b) {  //Used for sorting the hand. It groups the cards by rank.
+    if (a.rank < b.rank)
+       return -1;
+    if (a.rank > b.rank)
+      return 1;
+    return 0;
+  }
+
+
+  var book1 = new hasBook(player1, "Player 1");
+  var book2 = new hasBook(player2, "Player 2");
+
+  console.log("card count: " + d.count() + ", player one count: " + player1.hand.length + ", player two count: " + player2.hand.length);
+  console.log("");
+
+  function PlayGame () {
+    this.play = function() {
+      while (d.count() > 0 && player1.hand.length > 0 && player2.hand.length > 0){  //game ends if either CPU, Player,
+        player1.showHand();                                                         //or deck has no cards
+        var answer = prompt("Use console to view cards. Player 1, please ask for a rank. Press Cancel to quit.");
+        while (player1.handRank.indexOf(answer) == -1 && answer != null) {
+          alert("Please choose a rank that you have");
+          answer = prompt("Use console to view cards. Player 1, please ask for a rank. Press Cancel to quit.");
+        }
+        if (answer == null) break;  //exits game if cancel is pressed
+        human = new HumanTurn(answer);
+        var trueOrFalse= human.choose();
+        if (trueOrFalse == false) {
+          do {
+            if (d.count < 1) break  //prevents CPU from drawing from an empty deck
+              turn = new CpuTurn();
+            var trueOrFalse2 = turn.choose();
+          }
+          while (trueOrFalse2 == true)
+        }
+        book1.check();
+        book2.check();
+        k = 0;
+        while (k < player1.hand.length) {             //keeps track of what ranks the player has drawn
+         player1.handRank.push(player1.hand[k].rank);
+         k++;
+        }
+        console.log("");
+        console.log("card count: " + d.count() + ", player one count: " + player1.hand.length + ", player two count: " + player2.hand.length);
+        console.log("");
+      }
+    }
+  }
+
+  var game = new PlayGame();
+  game.play();
+  alert("Final score:\nPlayer 1: " + book1.score + "\nPlayer 2: " + book2.score);
+
+</script>
